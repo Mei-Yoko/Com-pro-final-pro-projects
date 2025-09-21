@@ -1,0 +1,17 @@
+RequestID, RequesterName, LicenseType, RequestDate
+L001, John Doe, Business License, 2025-08-01
+L002, Jane Smith, Event Permit,  2025-08-03
+L003, Marcus Rashford, Event Permit, 2025-08-04
+L004, Luke Shaw, Business License, 2025-08-06
+L005, Ricardo Kaka, Driving License, 2025-08-09
+L006, Tawanchai Sanchai, Scuba License, 2025-08-11
+L007, Superbon Singmawin, Business License, 2025-08-12
+L008, Matheus Cunha, Scuba License, 2025-08-15
+L009, Paolo Maldini, Event Permit, 2025-08-17
+L010, Fabio Arnold, Driving License, 2025-08-19
+L011, Komsak Smith, Event Permit, 2025-08-20
+L012, Wang I Bor, Business License, 2025-08-22
+L013, Jane Claire, Event Permit, 2025-08-24
+L014, Eric Clapton, Scuba License, 2025-08-27
+L015, John Mayer, Business License, 2025-08-29
+L016, Lilian Thuram, Event Permit, 2025-08-30
