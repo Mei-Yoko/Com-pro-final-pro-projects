@@ -40,4 +40,26 @@ int readCSV(LicenseRequest records[]) {
     return count;
 }
 
+// เขียนข้อมูลทั้งหมดลงไฟล์ CSV
+void writeCSV(LicenseRequest records[], int count) {
+    FILE *file = fopen(FILE_NAME, "w");
+    if (!file) {
+        printf("❌ ไม่สามารถเขียนไฟล์ได้\n");
+        return;
+    }
+
+    // เขียน Header
+    fprintf(file, "RequestID,RequesterName,LicenseType,RequestDate\n");
+
+    for (int i = 0; i < count; i++) {
+        fprintf(file, "%s,%s,%s,%s\n",
+                records[i].requestID,
+                records[i].requesterName,
+                records[i].licenseType,
+                records[i].requestDate);
+    }
+
+    fclose(file);
+}
+
        
