@@ -2,16 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_LINE 256       // ขนาดบรรทัดสูงสุด
-#define MAX_RECORDS 1000   // จำนวนข้อมูลสูงสุดที่เก็บได้
-#define FILE_NAME "data.csv" // ชื่อไฟล์ CSV
+#define MAX_LINE 256       
+#define MAX_RECORDS 1000   
+#define FILE_NAME "data.csv" 
 
 // โครงสร้างเก็บข้อมูลการขอใบอนุญาต
 typedef struct {
-    char requestID[20];     // หมายเลขคำขอ
-    char requesterName[50];   // ชื่อผู้ขอ
-    char licenseType[50];   // ประเภทใบอนุญาต
-    char requestDate[20];   // วันที่ขอ
+    char requestID[20];     
+    char requesterName[50];   
+    char licenseType[50];   
+    char requestDate[20];   
     } LicenseRequest;
 
 // อ่านข้อมูลจากไฟล์ CSV
@@ -24,7 +24,7 @@ int readCSV(LicenseRequest records[]) {
     char line[MAX_LINE];
     int count = 0;
 
-    // ข้ามบรรทัดแรก (Header)
+    // Header
     fgets(line, sizeof(line), file);
 
     while (fgets(line, sizeof(line), file)) {
