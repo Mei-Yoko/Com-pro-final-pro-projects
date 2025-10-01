@@ -28,7 +28,7 @@ int readCSV(LicenseRequest records[]) {
     fgets(line, sizeof(line), file);
 
     while (fgets(line, sizeof(line), file)) {
-        sscanf(line, " %[^,],%[^,],%[^,],%[^\n]",
+        sscanf(line, " %19[^,],%49[^,],%19[^,],%49[^\n]",
                records[count].requestID,
                records[count].requesterName,
                records[count].licenseType,
