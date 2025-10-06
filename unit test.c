@@ -26,9 +26,9 @@ void test_addRecord() {
 
 void test_searchRecord_partial() {
     LicenseRequest records[3] = {
-        {"001", "Alice", "IT", "2025-10-06"},
-        {"002", "Bob", "Driver", "2025-10-06"},
-        {"003", "Alicia", "Business", "2025-10-06"}
+        {"L001", "Alice", "IT", "2025-10-06"},
+        {"L002", "Bob", "Driver", "2025-10-06"},
+        {"L003", "Alicia", "Business", "2025-10-06"}
     };
     char keyword[] = "Ali";
     int found = 0;
@@ -68,9 +68,9 @@ void test_loginSystem() {
 
 void test_deleteRecord() {
     LicenseRequest records[3] = {
-        {"L01", "Alice", "IT", "2025-10-06"},
-        {"L02", "Bob", "Driver", "2025-10-06"},
-        {"L03", "Chris", "Admin", "2025-10-06"}
+        {"L001", "Alice", "IT", "2025-10-06"},
+        {"L002", "Bob", "Driver", "2025-10-06"},
+        {"L003", "Chris", "Admin", "2025-10-06"}
     };
     int count = 3;
     char target[] = "002";
