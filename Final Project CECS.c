@@ -1,20 +1,44 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
-#define MAX_LINE 256       
-#define MAX_RECORDS 1000   
-#define FILE_NAME "data.csv" 
+#define MAX_LINE 256
+#define MAX_RECORDS 1000
+#define FILE_NAME "data.csv"
 
-// โครงสร้างเก็บข้อมูลการขอใบอนุญาต
+// STRUCT 
 typedef struct {
-    char requestID[20];     
-    char requesterName[50];   
-    char licenseType[50];   
-    char requestDate[20];   
-    } LicenseRequest;
+    char requestID[20];
+    char requesterName[50];
+    char licenseType[50];
+    char requestDate[20];
+} LicenseRequest;
 
-// อ่านข้อมูลจากไฟล์ CSV
+typedef struct {
+    char username[20];
+    char password[20];
+    char role[10]; // Admin / Staff / General
+} User;
+
+//  USERS 
+User users[] = {
+    {"admin", "1234", "Admin"},
+    {"staff", "1234", "Staff"},
+    {"user", "1234", "General"}
+};
+
+//  DATE 
+int isValidDateFormat(const char *date) {
+    if (strlen(date) != 10) return 0;
+    for (int i = 0; i < 10; i++) {
+        if ((i == 4 || i == 7) && date[i] != '-') return 0;
+        if ((i != 4 && i != 7) && !isdigit(date[i])) return 0;
+    }
+    return 1;
+}
+
+//  READ CSV 
 int readCSV(LicenseRequest records[]) {
     FILE *file = fopen(FILE_NAME, "r");
     if (!file) {
@@ -23,34 +47,28 @@ int readCSV(LicenseRequest records[]) {
     }
     char line[MAX_LINE];
     int count = 0;
-
-    // Header
-    fgets(line, sizeof(line), file);
+    fgets(line, sizeof(line), file); // ข้าม Header
 
     while (fgets(line, sizeof(line), file)) {
-        sscanf(line, " %19[^,],%49[^,],%19[^,],%49[^\n]",
+        sscanf(line, " %[^,],%[^,],%[^,],%[^\n]",
                records[count].requestID,
                records[count].requesterName,
                records[count].licenseType,
                records[count].requestDate);
         count++;
     }
-
     fclose(file);
     return count;
 }
 
-// เขียนข้อมูลทั้งหมดลงไฟล์ CSV
+//  FUNCTION: WRITE CSV 
 void writeCSV(LicenseRequest records[], int count) {
     FILE *file = fopen(FILE_NAME, "w");
     if (!file) {
-        printf("❌ ไม่สามารถเขียนไฟล์ได้\n");
+        printf(" ไม่สามารถเขียนไฟล์ได้\n");
         return;
     }
-
-    // เขียน Header
     fprintf(file, "RequestID,RequesterName,LicenseType,RequestDate\n");
-
     for (int i = 0; i < count; i++) {
         fprintf(file, "%s,%s,%s,%s\n",
                 records[i].requestID,
@@ -58,39 +76,44 @@ void writeCSV(LicenseRequest records[], int count) {
                 records[i].licenseType,
                 records[i].requestDate);
     }
-
     fclose(file);
 }
-// เพิ่มข้อมูลใหม่ 
+
+//  ADD RECORD 
 void addRecord(LicenseRequest records[], int *count) {
     LicenseRequest newRec;
-
     printf("หมายเลขคำขอ: ");
     scanf(" %[^\n]", newRec.requestID);
     printf("ชื่อผู้ขอ: ");
     scanf(" %[^\n]", newRec.requesterName);
     printf("ประเภทใบอนุญาต: ");
     scanf(" %[^\n]", newRec.licenseType);
-    printf("วันที่ขอ (YYYY-MM-DD): ");
-    scanf(" %[^\n]", newRec.requestDate);
+
+    do {
+        printf("วันที่ขอ (YYYY-MM-DD): ");
+        scanf(" %[^\n]", newRec.requestDate);
+        if (!isValidDateFormat(newRec.requestDate)) {
+            printf(" รูปแบบวันที่ไม่ถูกต้อง! กรุณากรอกใหม่ (เช่น 2025-10-06)\n");
+        }
+    } while (!isValidDateFormat(newRec.requestDate));
 
     records[*count] = newRec;
     (*count)++;
-
     writeCSV(records, *count);
-    printf("  เพิ่มข้อมูลเรียบร้อย!\n");
+    printf("เพิ่มข้อมูลเรียบร้อย!\n");
 }
-// ค้นหาข้อมูล 
+
+//  SEARCH RECORD 
 void searchRecord(LicenseRequest records[], int count) {
     char keyword[50];
     int found = 0;
 
-    printf("กรอกหมายเลขคำขอหรือชื่อผู้ขอที่ต้องการค้นหา: ");
+    printf("กรอกคำค้นหา (ชื่อบางส่วนหรือหมายเลขคำขอ): ");
     scanf(" %[^\n]", keyword);
 
     for (int i = 0; i < count; i++) {
-        if (strcmp(records[i].requestID, keyword) == 0 ||
-            strcmp(records[i].requesterName, keyword) == 0) {
+        if (strstr(records[i].requestID, keyword) ||
+            strstr(records[i].requesterName, keyword)) {
             printf("พบข้อมูล: %s | %s | %s | %s\n",
                    records[i].requestID,
                    records[i].requesterName,
@@ -99,9 +122,12 @@ void searchRecord(LicenseRequest records[], int count) {
             found = 1;
         }
     }
+
+    if (!found)
+        printf(" ไม่พบข้อมูลที่ค้นหา\n");
 }
 
-// อัปเดตข้อมูล 
+// UPDATE RECORD 
 void updateRecord(LicenseRequest records[], int count) {
     char reqID[20];
     int found = 0;
@@ -116,23 +142,20 @@ void updateRecord(LicenseRequest records[], int count) {
                    records[i].requesterName,
                    records[i].licenseType,
                    records[i].requestDate);
-
             printf("ประเภทใบอนุญาตใหม่: ");
             scanf(" %[^\n]", records[i].licenseType);
-
             writeCSV(records, count);
-            printf("  อัปเดตเรียบร้อย!\n");
+            printf(" อัปเดตเรียบร้อย!\n");
             found = 1;
             break;
         }
     }
 
-    if (!found) {
-        printf("  ไม่พบหมายเลขคำขอ\n");
-    }
+    if (!found)
+        printf(" ไม่พบหมายเลขคำขอ\n");
 }
 
-// ลบข้อมูล 
+// DELETE RECORD 
 void deleteRecord(LicenseRequest records[], int *count) {
     char reqID[20];
     int found = 0;
@@ -146,62 +169,113 @@ void deleteRecord(LicenseRequest records[], int *count) {
                 records[j] = records[j + 1];
             }
             (*count)--;
-
             writeCSV(records, *count);
-            printf("  ลบข้อมูลเรียบร้อย!\n");
+            printf(" ลบข้อมูลเรียบร้อย!\n");
             found = 1;
             break;
         }
     }
 
-    if (!found) {
-        printf("  ไม่พบหมายเลขคำขอ\n");
-    }
+    if (!found)
+        printf(" ไม่พบหมายเลขคำขอ\n");
 }
 
-// แสดงเมนู
-void displayMenu() {
-    printf("\n ระบบจัดการข้อมูลการขอใบอนุญาต \n");
-    printf("1. แสดงข้อมูลทั้งหมด\n");
-    printf("2. เพิ่มข้อมูลใหม่ \n");
-    printf("3. ค้นหาข้อมูล \n");
-    printf("4. อัปเดตข้อมูล \n");
-    printf("5. ลบข้อมูล \n");
-    printf("0. ออกจากโปรแกรม\n");
+//  LOGIN 
+User loginSystem() {
+    char username[20], password[20];
+    User empty = {"", "", ""};
+
+    printf("ชื่อผู้ใช้: ");
+    scanf(" %s", username);
+    printf("รหัสผ่าน: ");
+    scanf(" %s", password);
+
+    for (int i = 0; i < 3; i++) {
+        if (strcmp(username, users[i].username) == 0 &&
+            strcmp(password, users[i].password) == 0) {
+            printf(" เข้าสู่ระบบสำเร็จ (Role: %s)\n", users[i].role);
+            return users[i];
+        }
+    }
+
+    printf(" ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง!\n");
+    return empty;
+}
+
+// DISPLAY MENU 
+void displayMenu(const char *lang) {
+    if (strcmp(lang, "en") == 0) {
+        printf("\n LICENSE MANAGEMENT SYSTEM \n");
+        printf("1. Show all records\n");
+        printf("2. Add new record\n");
+        printf("3. Search records\n");
+        printf("4. Update record\n");
+        printf("5. Delete record\n");
+        printf("0. Exit\n");
+    } else {
+        printf("\n ระบบจัดการข้อมูลใบอนุญาต \n");
+        printf("1. แสดงข้อมูลทั้งหมด\n");
+        printf("2. เพิ่มข้อมูลใหม่\n");
+        printf("3. ค้นหาข้อมูล\n");
+        printf("4. อัปเดตข้อมูล\n");
+        printf("5. ลบข้อมูล\n");
+        printf("0. ออกจากโปรแกรม\n");
+    }
     printf("เลือกเมนู: ");
 }
 
-// main program
+// MAIN 
 int main() {
     LicenseRequest records[MAX_RECORDS];
     int count = readCSV(records);
     int choice;
+    char lang[3];
+    User currentUser;
+
+    printf("เลือกภาษา (th/en): ");
+    scanf(" %s", lang);
+
+    currentUser = loginSystem();
+    if (strlen(currentUser.username) == 0) return 0; // login fail
 
     do {
-        displayMenu();
+        displayMenu(lang);
         scanf("%d", &choice);
 
         switch (choice) {
             case 1:
                 for (int i = 0; i < count; i++) {
-                    printf("%s | %s | %s | %s\n",
-                           records[i].requestID,
-                           records[i].requesterName,
-                           records[i].licenseType,
-                           records[i].requestDate);
+                    if (strcmp(currentUser.role, "General") == 0)
+                        printf("%s | %s\n", records[i].requestID, records[i].licenseType);
+                    else
+                        printf("%s | %s | %s | %s\n",
+                               records[i].requestID,
+                               records[i].requesterName,
+                               records[i].licenseType,
+                               records[i].requestDate);
                 }
                 break;
             case 2:
-                addRecord(records, &count);
+                if (strcmp(currentUser.role, "Admin") == 0 ||
+                    strcmp(currentUser.role, "Staff") == 0)
+                    addRecord(records, &count);
+                else
+                    printf(" คุณไม่มีสิทธิ์เพิ่มข้อมูล\n");
                 break;
             case 3:
                 searchRecord(records, count);
                 break;
             case 4:
-                updateRecord(records, count);
+                if (strcmp(currentUser.role, "Admin") == 0)
+                    updateRecord(records, count);
+                else
+                    printf(" เฉพาะ Admin เท่านั้นที่สามารถแก้ไขได้\n");
                 break;
             case 5:
-                deleteRecord(records, &count);
+                if (strcmp(currentUser.role, "Admin") == 0)
+                    deleteRecord(records, &count);
+                else
+                    printf(" เฉพาะ Admin เท่านั้นที่สามารถลบได้\n");
                 break;
             case 0:
                 printf(" ออกจากโปรแกรม...\n");
@@ -214,4 +288,3 @@ int main() {
     return 0;
 }
 
-       
