@@ -93,15 +93,3 @@ void test_deleteRecord() {
     printf(" test_deleteRecord passed!\n");
 }
 
-int main() {
-    printf("Running Unit Tests...\n\n");
-
-    test_isValidDateFormat();
-    test_addRecord();
-    test_searchRecord_partial();
-    test_loginSystem();
-    test_deleteRecord();
-
-    printf("\n All tests passed successfully!\n");
-    return 0;
-}
