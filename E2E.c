@@ -18,17 +18,17 @@ int main() {
         "1234\n"            // password
         "1\n"               // แสดงข้อมูล
         "2\n"               // เพิ่มข้อมูลใหม่
-        "L000\n"          // Request ID
-        "สมชาย เกิดใหม่\n" // Requester Name
-        "Driving License\n"   // License Type
-        "2025-10-06\n"      // Request Date
+        "L001\n"          // Request ID
+        "John Doe\n" // Requester Name
+        "Business License\n"   // License Type
+        "2025-08-01\n"      // Request Date
         "3\n"               // ค้นหา
-        "L000\n"          // Keyword
+        "L001\n"          // Keyword
         "4\n"               // อัปเดตข้อมูล
-        "L000\n"          // Request ID
-        "ใบขับขี่ทั่วไป\n"  // License Type ใหม่
+        "L001\n"          // Request ID
+        "Business License\n"  // License Type ใหม่
         "5\n"               // ลบข้อมูล
-        "L000\n"          // Request ID
+        "L001\n"          // Request ID
         "0\n"               // ออกจากโปรแกรม
     );
     fclose(f);
