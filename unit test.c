@@ -6,7 +6,7 @@
 
 void test_isValidDateFormat() {
     assert(isValidDateFormat("2025-10-06") == 1);
-    assert(isValidDateFormat("2025-13-01") == 1); // ยังไม่ตรวจค่าจริงของเดือน แต่ควรผ่าน format
+    assert(isValidDateFormat("2025-13-01") == 1); 
     assert(isValidDateFormat("25-10-06") == 0);
     assert(isValidDateFormat("2025/10/06") == 0);
     assert(isValidDateFormat("abcd-ef-gh") == 0);
