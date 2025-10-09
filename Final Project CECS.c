@@ -21,47 +21,133 @@ typedef struct {
     char role[10]; // Admin / Staff / General
 } User;
 
-//  USERS 
+// USERS 
 User users[] = {
     {"admin", "1234", "Admin"},
     {"staff", "1234", "Staff"},
     {"user", "1234", "General"}
 };
 
-//  DATE 
+// HELPER: Clear input buffer
+void clearInputBuffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
+
+// HELPER: Safe string input with length limit
+int safeInput(char *buffer, int maxLen) {
+    if (fgets(buffer, maxLen, stdin) == NULL) {
+        return 0;
+    }
+    // Remove trailing newline
+    size_t len = strlen(buffer);
+    if (len > 0 && buffer[len-1] == '\n') {
+        buffer[len-1] = '\0';
+    }
+    return 1;
+}
+
+// HELPER: Trim whitespace
+void trim(char *str) {
+    char *end;
+    while(isspace((unsigned char)*str)) str++;
+    if(*str == 0) return;
+    end = str + strlen(str) - 1;
+    while(end > str && isspace((unsigned char)*end)) end--;
+    end[1] = '\0';
+}
+
+int isEmpty(const char *str) {
+    while (*str) {
+        if (!isspace((unsigned char)*str)) return 0;
+        str++;
+    }
+    return 1;
+}
+
+//  Date (YYYY-MM-DD)
 int isValidDateFormat(const char *date) {
     if (strlen(date) != 10) return 0;
     for (int i = 0; i < 10; i++) {
         if ((i == 4 || i == 7) && date[i] != '-') return 0;
         if ((i != 4 && i != 7) && !isdigit(date[i])) return 0;
     }
+    
+   
+    int year, month, day;
+    if (sscanf(date, "%d-%d-%d", &year, &month, &day) != 3) return 0;
+    
+    //  ranges date
+    if (year < 1900 || year > 2100) return 0;
+    if (month < 1 || month > 12) return 0;
+    if (day < 1 || day > 31) return 0;
+    
+    
+    int daysInMonth[] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    if (day > daysInMonth[month - 1]) return 0;
+    
     return 1;
 }
 
-//  READ CSV 
+//  Check  RequestID
+int isDuplicateID(LicenseRequest records[], int count, const char *reqID) {
+    for (int i = 0; i < count; i++) {
+        if (strcmp(records[i].requestID, reqID) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+// READ CSV 
 int readCSV(LicenseRequest records[]) {
     FILE *file = fopen(FILE_NAME, "r");
     if (!file) {
-        printf(" ไม่พบไฟล์ %s\n", FILE_NAME);
+        printf("  ไม่พบไฟล์ %s (จะสร้างใหม่เมื่อเพิ่มข้อมูล)\n", FILE_NAME);
         return 0;
     }
+    
     char line[MAX_LINE];
     int count = 0;
-    fgets(line, sizeof(line), file); // ข้าม Header
+    int lineNum = 0;
+    
+    // Skip header
+    if (fgets(line, sizeof(line), file) == NULL) {
+        fclose(file);
+        return 0;
+    }
+    lineNum++;
 
-    while (fgets(line, sizeof(line), file)) {
-        sscanf(line, " %[^,],%[^,],%[^,],%[^\n]",
+    while (fgets(line, sizeof(line), file) && count < MAX_RECORDS) {
+        lineNum++;
+        
+        //  size limits
+        int parsed = sscanf(line, " %19[^,],%49[^,],%49[^,],%19[^\n]",
                records[count].requestID,
                records[count].requesterName,
                records[count].licenseType,
                records[count].requestDate);
-        count++;
+        
+        if (parsed == 4) {
+            trim(records[count].requestID);
+            trim(records[count].requesterName);
+            trim(records[count].licenseType);
+            trim(records[count].requestDate);
+            
+            if (!isEmpty(records[count].requestID)) {
+                count++;
+            }
+        } else {
+            printf("  บรรทัด %d มีรูปแบบไม่ถูกต้อง (ข้าม)\n", lineNum);
+        }
     }
+    
     fclose(file);
+    printf("✓ โหลดข้อมูล %d รายการ\n", count);
     return count;
 }
 
-//  FUNCTION: WRITE CSV 
+// WRITE CSV
 void writeCSV(LicenseRequest records[], int count) {
     FILE *file = fopen(FILE_NAME, "w");
     if (!file) {
@@ -79,38 +165,110 @@ void writeCSV(LicenseRequest records[], int count) {
     fclose(file);
 }
 
-//  ADD RECORD 
+// ADD RECORD 
 void addRecord(LicenseRequest records[], int *count) {
+    if (*count >= MAX_RECORDS) {
+        printf(" ไม่สามารถเพิ่มข้อมูลได้ (เต็ม %d รายการ)\n", MAX_RECORDS);
+        return;
+    }
+    
     LicenseRequest newRec;
-    printf("หมายเลขคำขอ: ");
-    scanf(" %[^\n]", newRec.requestID);
-    printf("ชื่อผู้ขอ: ");
-    scanf(" %[^\n]", newRec.requesterName);
-    printf("ประเภทใบอนุญาต: ");
-    scanf(" %[^\n]", newRec.licenseType);
-
+    
+    // Input RequestID
+    do {
+        printf("หมายเลขคำขอ: ");
+        clearInputBuffer();
+        if (!safeInput(newRec.requestID, sizeof(newRec.requestID))) {
+            printf(" ข้อผิดพลาดในการรับข้อมูล\n");
+            return;
+        }
+        trim(newRec.requestID);
+        
+        if (isEmpty(newRec.requestID)) {
+            printf("⚠️  หมายเลขคำขอต้องไม่ว่าง!\n");
+            continue;
+        }
+        
+        if (isDuplicateID(records, *count, newRec.requestID)) {
+            printf("⚠️  หมายเลขคำขอซ้ำ! กรุณาใช้หมายเลขอื่น\n");
+            continue;
+        }
+        break;
+    } while (1);
+    
+    // Input RequesterName
+    do {
+        printf("ชื่อผู้ขอ: ");
+        if (!safeInput(newRec.requesterName, sizeof(newRec.requesterName))) {
+            printf(" ข้อผิดพลาดในการรับข้อมูล\n");
+            return;
+        }
+        trim(newRec.requesterName);
+        
+        if (isEmpty(newRec.requesterName)) {
+            printf("⚠️  ชื่อผู้ขอต้องไม่ว่าง!\n");
+            continue;
+        }
+        break;
+    } while (1);
+    
+    // Input LicenseType
+    do {
+        printf("ประเภทใบอนุญาต: ");
+        if (!safeInput(newRec.licenseType, sizeof(newRec.licenseType))) {
+            printf(" ข้อผิดพลาดในการรับข้อมูล\n");
+            return;
+        }
+        trim(newRec.licenseType);
+        
+        if (isEmpty(newRec.licenseType)) {
+            printf("⚠️  ประเภทใบอนุญาตต้องไม่ว่าง!\n");
+            continue;
+        }
+        break;
+    } while (1);
+    
+    // Input RequestDate
     do {
         printf("วันที่ขอ (YYYY-MM-DD): ");
-        scanf(" %[^\n]", newRec.requestDate);
-        if (!isValidDateFormat(newRec.requestDate)) {
-            printf(" รูปแบบวันที่ไม่ถูกต้อง! กรุณากรอกใหม่ (เช่น 2025-10-06)\n");
+        if (!safeInput(newRec.requestDate, sizeof(newRec.requestDate))) {
+            printf(" ข้อผิดพลาดในการรับข้อมูล\n");
+            return;
         }
-    } while (!isValidDateFormat(newRec.requestDate));
+        trim(newRec.requestDate);
+        
+        if (!isValidDateFormat(newRec.requestDate)) {
+            printf("⚠️  รูปแบบวันที่ไม่ถูกต้อง! (ต้องเป็น YYYY-MM-DD เช่น 2025-10-06)\n");
+            continue;
+        }
+        break;
+    } while (1);
 
     records[*count] = newRec;
     (*count)++;
     writeCSV(records, *count);
-    printf("เพิ่มข้อมูลเรียบร้อย!\n");
+    printf("✓ เพิ่มข้อมูลเรียบร้อย!\n");
 }
 
-//  SEARCH RECORD 
+// SEARCH RECORD
 void searchRecord(LicenseRequest records[], int count) {
     char keyword[50];
     int found = 0;
 
     printf("กรอกคำค้นหา (ชื่อบางส่วนหรือหมายเลขคำขอ): ");
-    scanf(" %[^\n]", keyword);
+    clearInputBuffer();
+    if (!safeInput(keyword, sizeof(keyword))) {
+        printf(" ข้อผิดพลาดในการรับข้อมูล\n");
+        return;
+    }
+    trim(keyword);
 
+    if (isEmpty(keyword)) {
+        printf("⚠️  กรุณากรอกคำค้นหา\n");
+        return;
+    }
+
+    printf("\n--- ผลการค้นหา ---\n");
     for (int i = 0; i < count; i++) {
         if (strstr(records[i].requestID, keyword) ||
             strstr(records[i].requesterName, keyword)) {
@@ -124,26 +282,45 @@ void searchRecord(LicenseRequest records[], int count) {
     }
 
     if (!found)
-        printf(" ไม่พบข้อมูลที่ค้นหา\n");
+        printf("ไม่พบข้อมูลที่ค้นหา\n");
 }
 
-// UPDATE RECORD 
+// UPDATE RECORD
 void updateRecord(LicenseRequest records[], int count) {
     char reqID[20];
     int found = 0;
 
     printf("กรอกหมายเลขคำขอที่ต้องการแก้ไข: ");
-    scanf(" %[^\n]", reqID);
+    clearInputBuffer();
+    if (!safeInput(reqID, sizeof(reqID))) {
+        printf(" ข้อผิดพลาดในการรับข้อมูล\n");
+        return;
+    }
+    trim(reqID);
 
     for (int i = 0; i < count; i++) {
         if (strcmp(records[i].requestID, reqID) == 0) {
-            printf("ข้อมูลเดิม: %s | %s | %s | %s\n",
-                   records[i].requestID,
-                   records[i].requesterName,
-                   records[i].licenseType,
-                   records[i].requestDate);
-            printf("ประเภทใบอนุญาตใหม่: ");
-            scanf(" %[^\n]", records[i].licenseType);
+            printf("\nข้อมูลเดิม:\n");
+            printf("  หมายเลขคำขอ: %s\n", records[i].requestID);
+            printf("  ชื่อผู้ขอ: %s\n", records[i].requesterName);
+            printf("  ประเภทใบอนุญาต: %s\n", records[i].licenseType);
+            printf("  วันที่ขอ: %s\n", records[i].requestDate);
+            
+            do {
+                printf("\nประเภทใบอนุญาตใหม่: ");
+                if (!safeInput(records[i].licenseType, sizeof(records[i].licenseType))) {
+                    printf(" ข้อผิดพลาดในการรับข้อมูล\n");
+                    return;
+                }
+                trim(records[i].licenseType);
+                
+                if (isEmpty(records[i].licenseType)) {
+                    printf(" ประเภทใบอนุญาตต้องไม่ว่าง!\n");
+                    continue;
+                }
+                break;
+            } while (1);
+            
             writeCSV(records, count);
             printf(" อัปเดตเรียบร้อย!\n");
             found = 1;
@@ -158,13 +335,39 @@ void updateRecord(LicenseRequest records[], int count) {
 // DELETE RECORD 
 void deleteRecord(LicenseRequest records[], int *count) {
     char reqID[20];
+    char confirm[10];
     int found = 0;
 
     printf("กรอกหมายเลขคำขอที่ต้องการลบ: ");
-    scanf(" %[^\n]", reqID);
+    clearInputBuffer();
+    if (!safeInput(reqID, sizeof(reqID))) {
+        printf(" ข้อผิดพลาดในการรับข้อมูล\n");
+        return;
+    }
+    trim(reqID);
 
     for (int i = 0; i < *count; i++) {
         if (strcmp(records[i].requestID, reqID) == 0) {
+            printf("\nข้อมูลที่จะลบ:\n");
+            printf("  %s | %s | %s | %s\n",
+                   records[i].requestID,
+                   records[i].requesterName,
+                   records[i].licenseType,
+                   records[i].requestDate);
+            
+            printf("\nยืนยันการลบ? (yes/no): ");
+            if (!safeInput(confirm, sizeof(confirm))) {
+                printf(" ยกเลิกการลบ\n");
+                return;
+            }
+            trim(confirm);
+            
+            if (strcmp(confirm, "yes") != 0 && strcmp(confirm, "YES") != 0) {
+                printf(" ยกเลิกการลบ\n");
+                return;
+            }
+            
+            // erase records
             for (int j = i; j < *count - 1; j++) {
                 records[j] = records[j + 1];
             }
@@ -180,15 +383,25 @@ void deleteRecord(LicenseRequest records[], int *count) {
         printf(" ไม่พบหมายเลขคำขอ\n");
 }
 
-//  LOGIN 
+// LOGIN SYSTEM
 User loginSystem() {
     char username[20], password[20];
     User empty = {"", "", ""};
 
+    printf("\n=== เข้าสู่ระบบ ===\n");
     printf("ชื่อผู้ใช้: ");
-    scanf(" %s", username);
+    if (scanf("%19s", username) != 1) {
+        clearInputBuffer();
+        printf(" ข้อผิดพลาดในการรับข้อมูล\n");
+        return empty;
+    }
+    
     printf("รหัสผ่าน: ");
-    scanf(" %s", password);
+    if (scanf("%19s", password) != 1) {
+        clearInputBuffer();
+        printf(" ข้อผิดพลาดในการรับข้อมูล\n");
+        return empty;
+    }
 
     for (int i = 0; i < 3; i++) {
         if (strcmp(username, users[i].username) == 0 &&
@@ -202,7 +415,7 @@ User loginSystem() {
     return empty;
 }
 
-// DISPLAY MENU 
+// DISPLAY MENU
 void displayMenu(const char *lang) {
     if (strcmp(lang, "en") == 0) {
         printf("\n LICENSE MANAGEMENT SYSTEM \n");
@@ -224,7 +437,7 @@ void displayMenu(const char *lang) {
     printf("เลือกเมนู: ");
 }
 
-// MAIN 
+// MAIN
 int main() {
     LicenseRequest records[MAX_RECORDS];
     int count = readCSV(records);
@@ -233,26 +446,39 @@ int main() {
     User currentUser;
 
     printf("เลือกภาษา (th/en): ");
-    scanf(" %s", lang);
+    if (scanf("%2s", lang) != 1) {
+        printf(" ข้อผิดพลาด\n");
+        return 1;
+    }
 
     currentUser = loginSystem();
-    if (strlen(currentUser.username) == 0) return 0; // login fail
+    if (strlen(currentUser.username) == 0) return 0;
 
     do {
         displayMenu(lang);
-        scanf("%d", &choice);
+        
+        if (scanf("%d", &choice) != 1) {
+            clearInputBuffer();
+            printf(" กรุณากรอกตัวเลข!\n");
+            continue;
+        }
 
         switch (choice) {
             case 1:
-                for (int i = 0; i < count; i++) {
-                    if (strcmp(currentUser.role, "General") == 0)
-                        printf("%s | %s\n", records[i].requestID, records[i].licenseType);
-                    else
-                        printf("%s | %s | %s | %s\n",
-                               records[i].requestID,
-                               records[i].requesterName,
-                               records[i].licenseType,
-                               records[i].requestDate);
+                printf("\n รายการข้อมูลทั้งหมด \n");
+                if (count == 0) {
+                    printf("(ยังไม่มีข้อมูล)\n");
+                } else {
+                    for (int i = 0; i < count; i++) {
+                        if (strcmp(currentUser.role, "General") == 0)
+                            printf("%d. %s | %s\n", i+1, records[i].requestID, records[i].licenseType);
+                        else
+                            printf("%d. %s | %s | %s | %s\n", i+1,
+                                   records[i].requestID,
+                                   records[i].requesterName,
+                                   records[i].licenseType,
+                                   records[i].requestDate);
+                    }
                 }
                 break;
             case 2:
@@ -278,10 +504,10 @@ int main() {
                     printf(" เฉพาะ Admin เท่านั้นที่สามารถลบได้\n");
                 break;
             case 0:
-                printf(" ออกจากโปรแกรม...\n");
+                printf("✓ ออกจากโปรแกรม...\n");
                 break;
             default:
-                printf(" เลือกเมนูไม่ถูกต้อง!\n");
+                printf("⚠️  เลือกเมนูไม่ถูกต้อง!\n");
         }
     } while (choice != 0);
 
