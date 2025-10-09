@@ -1,6 +1,7 @@
 # FinalProjectCompro
 
 #USER/Password/Role
+```shell
 {"admin", "1234", "Admin"},
 {"staff", "1234", "Staff"},
 {"user", "1234", "General"}
@@ -11,14 +12,19 @@
 กรอกรหัส Role ที่ให้ไว้ ชื่อผู้ใช้: admin เเละ รหัส
 เข้าสู่ระบบสำเร็จ (Role: Admin)
 จากนั้นจะเเสดงเมนู
+```
 
 # Compile and run
-//compile code//  
+##compile code
+```shell
 gcc -o unit_test.exe unit_test.c
 gcc -o Final_Project_CECS.exe Final_Project_CECS.c
 gcc -o E2E.exe E2E.c
+```
 
-//run//  
+##run
+```shell
 .\unit_test.exe
 .\Final_Project_CECS.exe
 .\E2E.exe
+```
