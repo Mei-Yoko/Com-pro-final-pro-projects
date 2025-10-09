@@ -28,3 +28,28 @@ gcc -o E2E.exe E2E.c
 .\Final_Project_CECS.exe
 .\E2E.exe
 ```
+##อีกเเบบ
+```shell
+หากโหลดเเล้ว compile ตามไม่ได้ให้ลองตรวจสอบก่อนว่าเข้าถึง path ที่ไฟล์อยุ่เเล้วยัง โดยให้
+
+ทำใน terminal vs code
+
+cd /d "ที่อยุ่ของไฟล์"
+
+ex. cd /d "E:\Final_Project_CECS\code"
+
+//compile code// Windows
+
+gcc -std=c11 -Wall -Wextra -O2 Final_Project_CECS.c unit_test.c E2E.c -o License_management.exe
+
+macOS / Linux//
+
+gcc -std=c11 -Wall -Wextra -O2 Final_Project_CECS.c unit_test.c E2E.c -o License_management
+
+//run//
+License_management.exe (window)
+
+./License_management (mac/linux)
+```
+
+
