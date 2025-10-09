@@ -17,6 +17,7 @@
 gcc -o unit_test.exe unit_test.c
 gcc -o Final_Project_CECS.exe Final_Project_CECS.c
 gcc -o E2E.exe E2E.c
+
 //run//  
 .\unit_test.exe
 .\Final_Project_CECS.exe
