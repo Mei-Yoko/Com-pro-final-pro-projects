@@ -14,7 +14,10 @@
 
 # Compile and run
 //compile code//  
-gcc -std=c11 -Wall -Wextra -O2 -I. .\Final_Project_CECS.c .\test\unit_test.c .\test\E2E.c -o License_management.exe .\License_management.exe
-
+gcc -o unit_test.exe unit_test.c
+gcc -o Final_Project_CECS.exe Final_Project_CECS.c
+gcc -o E2E.exe E2E.c
 //run//  
-License_management.exe
+.\unit_test.exe
+.\Final_Project_CECS.exe
+.\E2E.exe
