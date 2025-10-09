@@ -185,12 +185,12 @@ void addRecord(LicenseRequest records[], int *count) {
         trim(newRec.requestID);
         
         if (isEmpty(newRec.requestID)) {
-            printf("⚠️  หมายเลขคำขอต้องไม่ว่าง!\n");
+            printf(" หมายเลขคำขอต้องไม่ว่าง!\n");
             continue;
         }
         
         if (isDuplicateID(records, *count, newRec.requestID)) {
-            printf("⚠️  หมายเลขคำขอซ้ำ! กรุณาใช้หมายเลขอื่น\n");
+            printf(" หมายเลขคำขอซ้ำ! กรุณาใช้หมายเลขอื่น\n");
             continue;
         }
         break;
@@ -206,7 +206,7 @@ void addRecord(LicenseRequest records[], int *count) {
         trim(newRec.requesterName);
         
         if (isEmpty(newRec.requesterName)) {
-            printf("⚠️  ชื่อผู้ขอต้องไม่ว่าง!\n");
+            printf(" ชื่อผู้ขอต้องไม่ว่าง!\n");
             continue;
         }
         break;
@@ -222,7 +222,7 @@ void addRecord(LicenseRequest records[], int *count) {
         trim(newRec.licenseType);
         
         if (isEmpty(newRec.licenseType)) {
-            printf("⚠️  ประเภทใบอนุญาตต้องไม่ว่าง!\n");
+            printf(" ประเภทใบอนุญาตต้องไม่ว่าง!\n");
             continue;
         }
         break;
@@ -238,7 +238,7 @@ void addRecord(LicenseRequest records[], int *count) {
         trim(newRec.requestDate);
         
         if (!isValidDateFormat(newRec.requestDate)) {
-            printf("⚠️  รูปแบบวันที่ไม่ถูกต้อง! (ต้องเป็น YYYY-MM-DD เช่น 2025-10-06)\n");
+            printf(" รูปแบบวันที่ไม่ถูกต้อง! (ต้องเป็น YYYY-MM-DD เช่น 2025-10-06)\n");
             continue;
         }
         break;
@@ -507,7 +507,7 @@ int main() {
                 printf("✓ ออกจากโปรแกรม...\n");
                 break;
             default:
-                printf("⚠️  เลือกเมนูไม่ถูกต้อง!\n");
+                printf(" เลือกเมนูไม่ถูกต้อง!\n");
         }
     } while (choice != 0);
 
