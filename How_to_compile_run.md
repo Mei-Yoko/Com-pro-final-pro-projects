@@ -1,4 +1,6 @@
-USER/Password/Role
+# FinalProjectCompro
+
+#USER/Password/Role
 {"admin", "1234", "Admin"},
 {"staff", "1234", "Staff"},
 {"user", "1234", "General"}
@@ -9,3 +11,10 @@ USER/Password/Role
 กรอกรหัส Role ที่ให้ไว้ ชื่อผู้ใช้: admin เเละ รหัส
 เข้าสู่ระบบสำเร็จ (Role: Admin)
 จากนั้นจะเเสดงเมนู
+
+# Compile and run
+//compile code//  
+gcc -std=c11 -Wall -Wextra -O2 -I. .\Final_Project_CECS.c .\test\unit_test.c .\test\E2E.c -o License_management.exe .\License_management.exe
+
+//run//  
+License_management.exe
